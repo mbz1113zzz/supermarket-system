@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.cityu.supermarket.mapper.MemberMapper" >
+  <!--
+    Table: member (会员信息表)
+    约束：PRIMARY KEY(memberid)，idx_member_name 普通索引，chk_member_sex 限定性别为男/女
+    字段含义在下方 resultMap 的列注释中给出
+  -->
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Member" >
+    <!-- memberid: 会员唯一编号 / PK / VARCHAR(50) -->
+    <id column="memberid" property="memberId" jdbcType="VARCHAR" />
+    <!-- password: BCrypt 密码哈希 / VARCHAR(100) / NOT NULL -->
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <!-- name: 会员姓名 / VARCHAR(10) / idx_member_name -->
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <!-- sex: 性别 / VARCHAR(4) / CHECK IN ('男','女') -->
+    <result column="sex" property="sex" jdbcType="VARCHAR" />
+    <!-- birthday: 生日 / DATE / 可空 -->
+    <result column="birthday" property="birthday" jdbcType="DATE" />
+  </resultMap>
+
+  <!--findProductsByCidWithPage(String cid, int startIndex, int pageSize) throws Exception {
+        String sql = "select * from product where cid=? limit ? , ?";
+
+        findTotalRecords(String cid) throws Exception {
+        String sql = "select count(*) from product where cid =?";
+
+        -->
+  <!--
+    查询会员列表
+    - 支持会员ID、姓名精确匹配以及生日范围（birthdayQuery）过滤
+    - 默认按姓名、memberid 排序
+  -->
+  <select id="selectByOrder" parameterType="org.cityu.supermarket.entity.MemberQuery" resultType="org.cityu.supermarket.entity.Member">
+  select
+  *
+  from member
+  <where>
+  <if test="memberId != null" >
+    and memberid = #{memberId,jdbcType=VARCHAR}
+  </if>
+  <if test="name != null" >
+    and name = #{name,jdbcType=VARCHAR}
+  </if>
+  <if test="birthdayQuery != null" >
+    and date(birthday) between #{birthdayQuery} and now()
+  </if>
+  </where>
+  ORDER BY NAME,memberid
+  <if test="startIndex != null" >
+    limit #{startIndex},#{pageSize}
+  </if>
+</select>
+  <!-- 统计满足条件的会员数量 -->
+  <select id="selectCountByOrder" parameterType="org.cityu.supermarket.entity.MemberQuery" resultType="LONG">
+    select
+    count(name)
+    from
+    (
+    select
+    name
+    from
+    member
+    <where>
+      <if test="memberId != null" >
+        and memberid = #{memberId,jdbcType=VARCHAR}
+      </if>
+      <if test="name != null" >
+        and name = #{name,jdbcType=VARCHAR}
+      </if>
+      <if test="birthdayQuery != null" >
+        and date(birthday) between #{birthdayQuery} and now()
+      </if>
+    </where>
+    ORDER BY NAME,memberid
+    ) as a
+  </select>
+  <!-- 按主键查询单个会员 -->
+  <select id="selectMemberById" parameterType="java.lang.String" resultType="org.cityu.supermarket.entity.Member">
+    select *
+    from member
+    where memberid = #{memberId,jdbcType=VARCHAR}
+  </select>
+  <!-- 插入会员，字段约束与 schema.sql 保持一致 -->
+  <insert id="insertMember" parameterType="org.cityu.supermarket.entity.Member">
+    insert into member (memberid, password, name,
+      sex, birthday)
+    values (#{memberId,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+      #{sex,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE})
+  </insert>
+
+  <!-- 删除会员前请先清理 card/order 级联信息 -->
+  <delete id="deleteMember" parameterType="String">
+    delete
+    from
+    member
+    <where>
+      memberid = #{memberId,jdbcType=VARCHAR}
+    </where>
+  </delete>
+
+  <!-- 根据主键选择性更新会员信息 -->
+  <update id="updateMember" parameterType="org.cityu.supermarket.entity.Member">
+    update member
+    <set >
+      <if test="password != null" >
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        sex = #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="birthday != null" >
+        birthday = #{birthday,jdbcType=DATE},
+      </if>
+    </set>
+    where memberid = #{memberId,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 仅更新会员密码，用于后台重置 -->
+  <update id="updateMemberPassword">
+    update member
+    set password = #{password,jdbcType=VARCHAR}
+    where memberid = #{memberId,jdbcType=VARCHAR}
+  </update>
+
+  <!-- 获取最近新增的会员列表 -->
+  <select id="selectRecentMembers" resultMap="BaseResultMap">
+    select *
+    from member
+    order by memberid desc
+    limit #{limit}
+  </select>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.cityu.supermarket.mapper.ProductMapper" >
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Product" >
+    <id column="productid" property="productId" jdbcType="INTEGER" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="INTEGER" />
+    <result column="integral" property="integral" jdbcType="INTEGER" />
+    <result column="category" property="category" jdbcType="VARCHAR" />
+    <result column="stock" property="stock" jdbcType="INTEGER" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="time" property="time" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <insert id="insertProduct" parameterType="org.cityu.supermarket.entity.Product" useGeneratedKeys="true" keyProperty="productId">
+        insert into product (name, price, integral, category, stock, unit, time)
+    values (#{name,jdbcType=VARCHAR}, #{price,jdbcType=INTEGER},
+      #{integral,jdbcType=INTEGER}, #{category,jdbcType=VARCHAR},
+      #{stock,jdbcType=INTEGER}, #{unit,jdbcType=VARCHAR}, now())
+  </insert>
+
+  <select id="selectAllProduct" resultType="org.cityu.supermarket.entity.Product">
+    select productid, name, price, integral, category, stock, unit,
+           DATE_FORMAT(time,'%Y-%m-%d %T') as time
+    from product
+    order by time desc
+  </select>
+
+  <select id="selectProductCount" resultType="LONG">
+    select count(*) from product
+  </select>
+
+  <select id="selectProductById" parameterType="String" resultType="org.cityu.supermarket.entity.Product">
+    select productid, name, price, integral, category, stock, unit,
+           DATE_FORMAT(time,'%Y-%m-%d %T') as time
+    from product
+    where productid = #{productId}
+  </select>
+
+  <select id="selectProductByCategory" parameterType="String" resultType="org.cityu.supermarket.entity.Product">
+    select productid, name, price, integral, category, stock, unit,
+           DATE_FORMAT(time,'%Y-%m-%d %T') as time
+    from product
+    where category = #{category}
+    order by time desc
+  </select>
+
+  <select id="selectProductByName" parameterType="String" resultType="org.cityu.supermarket.entity.Product">
+    select productid, name, price, integral, category, stock, unit,
+           DATE_FORMAT(time,'%Y-%m-%d %T') as time
+    from product
+    where name like CONCAT('%', #{name}, '%')
+    order by time desc
+  </select>
+
+  <delete id="deleteProductById" parameterType="String">
+    delete from product
+    where productid = #{productId}
+  </delete>
+
+  <update id="updateProductById" parameterType="org.cityu.supermarket.entity.Product">
+    update product
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=INTEGER},
+      </if>
+      <if test="integral != null" >
+        integral = #{integral,jdbcType=INTEGER},
+      </if>
+      <if test="category != null" >
+        category = #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="stock != null" >
+        stock = #{stock,jdbcType=INTEGER},
+      </if>
+      <if test="unit != null" >
+        unit = #{unit,jdbcType=VARCHAR},
+      </if>
+        time = now()
+    </set>
+    where productid = #{productId,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateStock">
+    update product set stock = #{stock,jdbcType=INTEGER}
+    where productid = #{productId,jdbcType=VARCHAR}
+  </update>
+
+  <update id="decreaseStock">
+    update product set stock = stock - #{quantity,jdbcType=INTEGER}
+    where productid = #{productId,jdbcType=VARCHAR} and stock >= #{quantity,jdbcType=INTEGER}
+  </update>
+
+  <select id="selectLowStockCount" resultType="LONG">
+    select count(*) from product where stock &lt; 20
+  </select>
+</mapper>

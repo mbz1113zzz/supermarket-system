@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.cityu.supermarket.mapper.OrderMapper" >
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Order" >
+    <id column="orderid" property="orderid" jdbcType="VARCHAR" />
+    <result column="cardid" property="cardid" jdbcType="VARCHAR" />
+    <result column="total_amount" property="totalAmount" jdbcType="INTEGER" />
+    <result column="total_integral" property="totalIntegral" jdbcType="INTEGER" />
+    <result column="payment_method" property="paymentMethod" jdbcType="INTEGER" />
+    <result column="order_time" property="orderTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+
+  <resultMap id="OrderWithItemsResultMap" type="org.cityu.supermarket.entity.Order" extends="BaseResultMap">
+    <collection property="orderItems" ofType="org.cityu.supermarket.entity.OrderItem">
+      <id column="item_id" property="itemId" jdbcType="INTEGER" />
+      <result column="item_orderid" property="orderid" jdbcType="VARCHAR" />
+      <result column="productid" property="productid" jdbcType="INTEGER" />
+      <result column="quantity" property="quantity" jdbcType="INTEGER" />
+      <result column="price" property="price" jdbcType="INTEGER" />
+      <result column="subtotal" property="subtotal" jdbcType="INTEGER" />
+    </collection>
+  </resultMap>
+
+  <insert id="insertOrder" parameterType="org.cityu.supermarket.entity.Order">
+    insert into orders (orderid, cardid, total_amount, total_integral,
+                       payment_method, order_time, status)
+    values (#{orderid,jdbcType=VARCHAR}, #{cardid,jdbcType=VARCHAR},
+            #{totalAmount,jdbcType=INTEGER}, #{totalIntegral,jdbcType=INTEGER},
+            #{paymentMethod,jdbcType=INTEGER}, #{orderTime,jdbcType=TIMESTAMP},
+            #{status,jdbcType=INTEGER})
+  </insert>
+
+  <select id="selectAllOrder" resultType="org.cityu.supermarket.entity.Order">
+    select orderid, cardid, total_amount, total_integral, payment_method,
+           DATE_FORMAT(order_time,'%Y-%m-%d %T') as orderTime, status
+    from orders
+    order by order_time desc
+  </select>
+
+  <select id="selectOrderById" parameterType="String" resultMap="OrderWithItemsResultMap">
+    select o.orderid, o.cardid, o.total_amount, o.total_integral,
+           o.payment_method, DATE_FORMAT(o.order_time,'%Y-%m-%d %T') as orderTime,
+           o.status,
+           oi.item_id, oi.orderid as item_orderid, oi.productid,
+           oi.quantity, oi.price, oi.subtotal
+    from orders o
+    left join order_items oi on o.orderid = oi.orderid
+    where o.orderid = #{orderid}
+  </select>
+
+  <select id="selectOrdersByCardId" parameterType="String" resultType="org.cityu.supermarket.entity.Order">
+    select orderid, cardid, total_amount, total_integral, payment_method,
+           DATE_FORMAT(order_time,'%Y-%m-%d %T') as orderTime, status
+    from orders
+    where cardid = #{cardid}
+    order by order_time desc
+  </select>
+
+  <select id="selectOrdersByTimeRange" resultType="org.cityu.supermarket.entity.Order">
+    select orderid, cardid, total_amount, total_integral, payment_method,
+           DATE_FORMAT(order_time,'%Y-%m-%d %T') as orderTime, status
+    from orders
+    where order_time between #{startTime} and #{endTime}
+    order by order_time desc
+  </select>
+
+  <update id="updateOrderStatus">
+    update orders set status = #{status,jdbcType=INTEGER}
+    where orderid = #{orderid,jdbcType=VARCHAR}
+  </update>
+
+  <delete id="deleteOrderById" parameterType="String">
+    delete from orders where orderid = #{orderid}
+  </delete>
+
+  <delete id="deleteOrdersByCardId" parameterType="String">
+    delete from orders where cardid = #{cardid}
+  </delete>
+
+  <select id="countOrders" resultType="INTEGER">
+    select count(*) from orders
+  </select>
+
+  <select id="sumAmountByTimeRange" resultType="INTEGER">
+    select COALESCE(sum(total_amount), 0)
+    from orders
+    where order_time between #{startTime} and #{endTime}
+  </select>
+</mapper>
