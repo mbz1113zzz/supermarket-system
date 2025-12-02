@@ -1,6 +1,6 @@
 # Supermarket Management System
 
-A Spring Boot 3 + Vue 2 platform for supermarket operations: members, cards, products, and orders.
+A Spring Boot 3 + Vue 2 platform for supermarket operations: members, cards, products, orders, and procurement.
 
 ## Project Structure
 
@@ -20,7 +20,8 @@ supermarket-system/
 │   └── application.properties
 ├── src/test/           # Unit tests (JUnit 5)
 ├── db/
-│   └── core/           # Core SQL (members, products, orders)
+│   ├── core/           # Core SQL (members, products, orders)
+│   └── extension/      # Extension SQL (procurement)
 ├── frontend/           # Vue 2 + Element UI app
 │   ├── src/views/      # Page components
 │   ├── src/api/        # API wrappers
@@ -117,5 +118,6 @@ Test profile config: `src/test/resources/application-test.properties` (points to
 - Product management — CRUD, categories, inventory
 - Order management — creation, details, balance/points payment
 - Transaction records — recharge & consumption logs
+- Procurement — suppliers, purchase orders, inbound tracking
 - Dashboard — basic home view
 

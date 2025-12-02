@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.cityu.supermarket.mapper.SupplierMapper">
+
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Supplier">
+    <id column="supplier_id" property="supplierId" jdbcType="VARCHAR" />
+    <result column="supplier_name" property="supplierName" jdbcType="VARCHAR" />
+    <result column="contact_person" property="contactPerson" jdbcType="VARCHAR" />
+    <result column="contact_phone" property="contactPhone" jdbcType="VARCHAR" />
+    <result column="contact_email" property="contactEmail" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="credit_rating" property="creditRating" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <select id="selectAllSuppliers" resultMap="BaseResultMap">
+    SELECT * FROM supplier ORDER BY create_time DESC
+  </select>
+
+  <select id="selectSuppliersByCondition" resultMap="BaseResultMap">
+    SELECT * FROM supplier
+    <where>
+      <if test="supplierName != null and supplierName != ''">
+        AND supplier_name LIKE CONCAT('%', #{supplierName}, '%')
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="selectSupplierById" resultMap="BaseResultMap">
+    SELECT * FROM supplier WHERE supplier_id = #{supplierId}
+  </select>
+
+  <insert id="insertSupplier" parameterType="org.cityu.supermarket.entity.Supplier">
+    INSERT INTO supplier (supplier_id, supplier_name, contact_person, contact_phone, contact_email, address, credit_rating, status, create_time, update_time)
+    VALUES (#{supplierId}, #{supplierName}, #{contactPerson}, #{contactPhone}, #{contactEmail}, #{address}, #{creditRating}, #{status}, NOW(), NOW())
+  </insert>
+
+  <update id="updateSupplier" parameterType="org.cityu.supermarket.entity.Supplier">
+    UPDATE supplier
+    <set>
+      <if test="supplierName != null">supplier_name = #{supplierName},</if>
+      <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+      <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+      <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+      <if test="address != null">address = #{address},</if>
+      <if test="creditRating != null">credit_rating = #{creditRating},</if>
+      <if test="status != null">status = #{status},</if>
+      update_time = NOW()
+    </set>
+    WHERE supplier_id = #{supplierId}
+  </update>
+
+  <delete id="deleteSupplier">
+    DELETE FROM supplier WHERE supplier_id = #{supplierId}
+  </delete>
+
+  <select id="countSuppliers" resultType="int">
+    SELECT COUNT(*) FROM supplier
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+  </select>
+
+</mapper>

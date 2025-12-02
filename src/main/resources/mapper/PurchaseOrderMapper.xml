@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.cityu.supermarket.mapper.PurchaseOrderMapper">
+
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.PurchaseOrder">
+    <id column="purchase_id" property="purchaseId" jdbcType="VARCHAR" />
+    <result column="supplier_id" property="supplierId" jdbcType="VARCHAR" />
+    <result column="supplier_name" property="supplierName" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="order_date" property="orderDate" jdbcType="TIMESTAMP" />
+    <result column="expected_date" property="expectedDate" jdbcType="TIMESTAMP" />
+    <result column="actual_date" property="actualDate" jdbcType="TIMESTAMP" />
+    <result column="total_amount" property="totalAmount" jdbcType="DECIMAL" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <select id="selectAllPurchaseOrders" resultMap="BaseResultMap">
+    SELECT po.*, s.supplier_name 
+    FROM purchase_order po 
+    LEFT JOIN supplier s ON po.supplier_id = s.supplier_id 
+    ORDER BY po.create_time DESC
+  </select>
+
+  <select id="selectPurchaseOrdersByCondition" resultMap="BaseResultMap">
+    SELECT po.*, s.supplier_name 
+    FROM purchase_order po 
+    LEFT JOIN supplier s ON po.supplier_id = s.supplier_id
+    <where>
+      <if test="orderNumber != null and orderNumber != ''">
+        AND po.purchase_id LIKE CONCAT('%', #{orderNumber}, '%')
+      </if>
+      <if test="supplierId != null and supplierId != ''">
+        AND po.supplier_id = #{supplierId}
+      </if>
+      <if test="status != null">
+        AND po.status = #{status}
+      </if>
+      <if test="startDate != null and startDate != ''">
+        AND po.order_date &gt;= #{startDate}
+      </if>
+      <if test="endDate != null and endDate != ''">
+        AND po.order_date &lt;= #{endDate}
+      </if>
+    </where>
+    ORDER BY po.create_time DESC
+  </select>
+
+  <select id="selectPurchaseOrderById" resultMap="BaseResultMap">
+    SELECT po.*, s.supplier_name 
+    FROM purchase_order po 
+    LEFT JOIN supplier s ON po.supplier_id = s.supplier_id 
+    WHERE po.purchase_id = #{orderId}
+  </select>
+
+  <insert id="insertPurchaseOrder" parameterType="org.cityu.supermarket.entity.PurchaseOrder">
+    INSERT INTO purchase_order (purchase_id, supplier_id, operator, remark, 
+      order_date, expected_date, total_amount, status, create_time, update_time)
+    VALUES (#{purchaseId}, #{supplierId}, #{operator}, #{remark}, 
+      NOW(), #{expectedDate}, #{totalAmount}, #{status}, NOW(), NOW())
+  </insert>
+
+  <update id="updatePurchaseOrder" parameterType="org.cityu.supermarket.entity.PurchaseOrder">
+    UPDATE purchase_order
+    <set>
+      <if test="supplierId != null">supplier_id = #{supplierId},</if>
+      <if test="operator != null">operator = #{operator},</if>
+      <if test="remark != null">remark = #{remark},</if>
+      <if test="expectedDate != null">expected_date = #{expectedDate},</if>
+      <if test="actualDate != null">actual_date = #{actualDate},</if>
+      <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+      <if test="status != null">status = #{status},</if>
+      update_time = NOW()
+    </set>
+    WHERE purchase_id = #{purchaseId}
+  </update>
+
+  <update id="updatePurchaseOrderStatus">
+    UPDATE purchase_order 
+    SET status = #{status}, update_time = NOW() 
+    WHERE purchase_id = #{orderId}
+  </update>
+
+  <update id="updateOrderStatus">
+    UPDATE purchase_order 
+    SET status = #{status}, operator = #{operator}, update_time = NOW() 
+    WHERE purchase_id = #{purchaseId}
+  </update>
+
+  <delete id="deletePurchaseOrder">
+    DELETE FROM purchase_order WHERE purchase_id = #{orderId}
+  </delete>
+
+  <select id="countPurchaseOrders" resultType="int">
+    SELECT COUNT(*) FROM purchase_order
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+  </select>
+
+</mapper>

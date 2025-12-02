@@ -98,6 +98,28 @@ export const constantRoutes = [
         meta: { title: 'Product Inventory', icon: 'el-icon-box' }
       }
     ]
+  },
+
+  {
+    path: '/procurement',
+    component: () => import('@/layout/Index.vue'),
+    redirect: '/procurement/suppliers',
+    name: 'Procurement',
+    meta: { title: 'Procurement Management', icon: 'el-icon-shopping-cart-2' },
+    children: [
+      {
+        path: 'suppliers',
+        name: 'SupplierList',
+        component: () => import('@/views/procurement/SupplierList.vue'),
+        meta: { title: 'Suppliers', icon: 'el-icon-office-building' }
+      },
+      {
+        path: 'purchaseOrders',
+        name: 'PurchaseOrderList',
+        component: () => import('@/views/procurement/PurchaseOrderList.vue'),
+        meta: { title: 'Purchase Orders', icon: 'el-icon-document' }
+      }
+    ]
   }
 ]
 
