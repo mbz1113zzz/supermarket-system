@@ -148,6 +148,22 @@ export const constantRoutes = [
         meta: { title: 'Customer Analytics', icon: 'el-icon-user' }
       }
     ]
+  },
+
+  {
+    path: '/statistics',
+    component: () => import('@/layout/Index.vue'),
+    redirect: '/statistics/overview',
+    name: 'Statistics',
+    meta: { title: 'Reports', icon: 'el-icon-data-analysis' },
+    children: [
+      {
+        path: 'overview',
+        name: 'StatisticsOverview',
+        component: () => import('@/views/statistics/Overview.vue'),
+        meta: { title: 'Data Overview', icon: 'el-icon-pie-chart' }
+      }
+    ]
   }
 ]
 
