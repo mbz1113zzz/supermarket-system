@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.cityu.supermarket.mapper.CouponMapper">
+
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Coupon">
+    <id column="coupon_id" property="couponId" jdbcType="VARCHAR" />
+    <result column="coupon_name" property="couponName" jdbcType="VARCHAR" />
+    <result column="coupon_type" property="couponType" jdbcType="INTEGER" />
+    <result column="denomination" property="denomination" jdbcType="DECIMAL" />
+    <result column="discount_rate" property="discountRate" jdbcType="DECIMAL" />
+    <result column="min_amount" property="minAmount" jdbcType="DECIMAL" />
+    <result column="valid_days" property="validDays" jdbcType="INTEGER" />
+    <result column="total_quantity" property="totalQuantity" jdbcType="INTEGER" />
+    <result column="used_quantity" property="usedQuantity" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <select id="selectAllCoupons" resultMap="BaseResultMap">
+    SELECT * FROM coupon ORDER BY create_time DESC
+  </select>
+
+  <select id="selectCouponsByCondition" resultMap="BaseResultMap">
+    SELECT * FROM coupon
+    <where>
+      <if test="couponName != null and couponName != ''">
+        AND coupon_name LIKE CONCAT('%', #{couponName}, '%')
+      </if>
+      <if test="couponType != null">
+        AND coupon_type = #{couponType}
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="selectCouponById" resultMap="BaseResultMap">
+    SELECT * FROM coupon WHERE coupon_id = #{couponId}
+  </select>
+
+  <insert id="insertCoupon" parameterType="org.cityu.supermarket.entity.Coupon">
+    INSERT INTO coupon (coupon_id, coupon_name, coupon_type, denomination, 
+      discount_rate, min_amount, valid_days, total_quantity, used_quantity, status, create_time)
+    VALUES (#{couponId}, #{couponName}, #{couponType}, #{denomination}, 
+      #{discountRate}, #{minAmount}, #{validDays}, #{totalQuantity}, #{usedQuantity}, #{status}, NOW())
+  </insert>
+
+  <update id="updateCoupon" parameterType="org.cityu.supermarket.entity.Coupon">
+    UPDATE coupon
+    <set>
+      <if test="couponName != null">coupon_name = #{couponName},</if>
+      <if test="couponType != null">coupon_type = #{couponType},</if>
+      <if test="denomination != null">denomination = #{denomination},</if>
+      <if test="discountRate != null">discount_rate = #{discountRate},</if>
+      <if test="minAmount != null">min_amount = #{minAmount},</if>
+      <if test="validDays != null">valid_days = #{validDays},</if>
+      <if test="totalQuantity != null">total_quantity = #{totalQuantity},</if>
+      <if test="usedQuantity != null">used_quantity = #{usedQuantity},</if>
+      <if test="status != null">status = #{status},</if>
+    </set>
+    WHERE coupon_id = #{couponId}
+  </update>
+
+  <delete id="deleteCoupon">
+    DELETE FROM coupon WHERE coupon_id = #{couponId}
+  </delete>
+
+  <select id="countCoupons" resultType="int">
+    SELECT COUNT(*) FROM coupon
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+  </select>
+
+</mapper>

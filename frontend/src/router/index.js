@@ -120,6 +120,34 @@ export const constantRoutes = [
         meta: { title: 'Purchase Orders', icon: 'el-icon-document' }
       }
     ]
+  },
+
+  {
+    path: '/marketing',
+    component: () => import('@/layout/Index.vue'),
+    redirect: '/marketing/promotions',
+    name: 'Marketing',
+    meta: { title: 'Marketing Analytics', icon: 'el-icon-data-line' },
+    children: [
+      {
+        path: 'promotions',
+        name: 'PromotionList',
+        component: () => import('@/views/marketing/PromotionList.vue'),
+        meta: { title: 'Promotions', icon: 'el-icon-present' }
+      },
+      {
+        path: 'coupons',
+        name: 'CouponList',
+        component: () => import('@/views/marketing/CouponList.vue'),
+        meta: { title: 'Coupon Management', icon: 'el-icon-present' }
+      },
+      {
+        path: 'customerAnalytics',
+        name: 'CustomerAnalytics',
+        component: () => import('@/views/marketing/CustomerAnalytics.vue'),
+        meta: { title: 'Customer Analytics', icon: 'el-icon-user' }
+      }
+    ]
   }
 ]
 

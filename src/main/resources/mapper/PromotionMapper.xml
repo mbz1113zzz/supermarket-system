@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.cityu.supermarket.mapper.PromotionMapper">
+
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.Promotion">
+    <id column="promotion_id" property="promotionId" jdbcType="VARCHAR" />
+    <result column="promotion_name" property="promotionName" jdbcType="VARCHAR" />
+    <result column="promotion_type" property="promotionType" jdbcType="INTEGER" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="start_time" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="min_amount" property="minAmount" jdbcType="DECIMAL" />
+    <result column="discount_rate" property="discountRate" jdbcType="DECIMAL" />
+    <result column="discount_amount" property="discountAmount" jdbcType="DECIMAL" />
+    <result column="member_only" property="memberOnly" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <select id="selectAllPromotions" resultMap="BaseResultMap">
+    SELECT * FROM promotion ORDER BY create_time DESC
+  </select>
+
+  <select id="selectPromotionsByCondition" resultMap="BaseResultMap">
+    SELECT * FROM promotion
+    <where>
+      <if test="promotionName != null and promotionName != ''">
+        AND promotion_name LIKE CONCAT('%', #{promotionName}, '%')
+      </if>
+      <if test="promotionType != null">
+        AND promotion_type = #{promotionType}
+      </if>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="selectActivePromotions" resultMap="BaseResultMap">
+    SELECT * FROM promotion 
+    WHERE status = 1 
+      AND start_time &lt;= NOW() 
+      AND end_time &gt;= NOW()
+    ORDER BY start_time DESC
+  </select>
+
+  <select id="selectPromotionById" resultMap="BaseResultMap">
+    SELECT * FROM promotion WHERE promotion_id = #{promotionId}
+  </select>
+
+  <insert id="insertPromotion" parameterType="org.cityu.supermarket.entity.Promotion">
+    INSERT INTO promotion (promotion_id, promotion_name, promotion_type, description, 
+      start_time, end_time, min_amount, discount_rate, discount_amount, member_only, status, create_time, update_time)
+    VALUES (#{promotionId}, #{promotionName}, #{promotionType}, #{description}, 
+      #{startTime}, #{endTime}, #{minAmount}, #{discountRate}, #{discountAmount}, #{memberOnly}, #{status}, NOW(), NOW())
+  </insert>
+
+  <update id="updatePromotion" parameterType="org.cityu.supermarket.entity.Promotion">
+    UPDATE promotion
+    <set>
+      <if test="promotionName != null">promotion_name = #{promotionName},</if>
+      <if test="promotionType != null">promotion_type = #{promotionType},</if>
+      <if test="description != null">description = #{description},</if>
+      <if test="startTime != null">start_time = #{startTime},</if>
+      <if test="endTime != null">end_time = #{endTime},</if>
+      <if test="minAmount != null">min_amount = #{minAmount},</if>
+      <if test="discountRate != null">discount_rate = #{discountRate},</if>
+      <if test="discountAmount != null">discount_amount = #{discountAmount},</if>
+      <if test="memberOnly != null">member_only = #{memberOnly},</if>
+      <if test="status != null">status = #{status},</if>
+      update_time = NOW()
+    </set>
+    WHERE promotion_id = #{promotionId}
+  </update>
+
+  <delete id="deletePromotion">
+    DELETE FROM promotion WHERE promotion_id = #{promotionId}
+  </delete>
+
+  <select id="countPromotions" resultType="int">
+    SELECT COUNT(*) FROM promotion
+    <where>
+      <if test="status != null">
+        AND status = #{status}
+      </if>
+    </where>
+  </select>
+
+</mapper>

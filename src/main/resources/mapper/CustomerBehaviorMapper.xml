@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.cityu.supermarket.mapper.CustomerBehaviorMapper">
+
+  <resultMap id="BaseResultMap" type="org.cityu.supermarket.entity.CustomerBehavior">
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="member_id" property="memberId" jdbcType="VARCHAR" />
+    <result column="card_id" property="cardId" jdbcType="VARCHAR" />
+    <result column="behavior_type" property="behaviorType" jdbcType="INTEGER" />
+    <result column="product_id" property="productId" jdbcType="INTEGER" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="product_category" property="productCategory" jdbcType="VARCHAR" />
+    <result column="order_amount" property="orderAmount" jdbcType="DECIMAL" />
+    <result column="session_id" property="sessionId" jdbcType="VARCHAR" />
+    <result column="behavior_time" property="behaviorTime" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <select id="selectCustomerBehaviors" resultMap="BaseResultMap">
+    SELECT cb.*, p.name as product_name, p.category as product_category
+    FROM customer_behavior cb
+    LEFT JOIN product p ON cb.product_id = p.productid
+    <where>
+      <if test="memberId != null and memberId != ''">
+        AND cb.member_id = #{memberId}
+      </if>
+      <if test="behaviorType != null">
+        AND cb.behavior_type = #{behaviorType}
+      </if>
+      <if test="productCategory != null and productCategory != ''">
+        AND p.category = #{productCategory}
+      </if>
+      <if test="startDate != null and startDate != ''">
+        AND cb.behavior_time &gt;= #{startDate}
+      </if>
+      <if test="endDate != null and endDate != ''">
+        AND cb.behavior_time &lt;= #{endDate}
+      </if>
+    </where>
+    ORDER BY cb.behavior_time DESC
+  </select>
+
+  <select id="countBehaviorsByType" resultType="java.util.Map">
+    SELECT 
+      behavior_type as behaviorType,
+      CASE behavior_type 
+        WHEN 1 THEN '浏览'
+        WHEN 2 THEN '加购'
+        WHEN 3 THEN '购买'
+        WHEN 4 THEN '收藏'
+      END as typeName,
+      COUNT(*) as count
+    FROM customer_behavior
+    <where>
+      <if test="startDate != null and startDate != ''">
+        AND behavior_time &gt;= #{startDate}
+      </if>
+      <if test="endDate != null and endDate != ''">
+        AND behavior_time &lt;= #{endDate}
+      </if>
+    </where>
+    GROUP BY behavior_type
+    ORDER BY count DESC
+  </select>
+
+  <select id="countPurchasesByCategory" resultType="java.util.Map">
+    SELECT 
+      p.category as category,
+      COALESCE(SUM(cb.order_amount), 0) as totalAmount,
+      COUNT(*) as orderCount
+    FROM customer_behavior cb
+    LEFT JOIN product p ON cb.product_id = p.productid
+    WHERE cb.behavior_type = 3
+    <if test="startDate != null and startDate != ''">
+      AND cb.behavior_time &gt;= #{startDate}
+    </if>
+    <if test="endDate != null and endDate != ''">
+      AND cb.behavior_time &lt;= #{endDate}
+    </if>
+    GROUP BY p.category
+    ORDER BY totalAmount DESC
+  </select>
+
+  <select id="selectHotProducts" resultType="java.util.Map">
+    SELECT 
+      ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as `rank`,
+      cb.product_id as productId,
+      p.name as productName,
+      COUNT(*) as sales,
+      COALESCE(SUM(cb.order_amount), 0) as revenue
+    FROM customer_behavior cb
+    LEFT JOIN product p ON cb.product_id = p.productid
+    WHERE cb.behavior_type = 3
+    <if test="startDate != null and startDate != ''">
+      AND cb.behavior_time &gt;= #{startDate}
+    </if>
+    <if test="endDate != null and endDate != ''">
+      AND cb.behavior_time &lt;= #{endDate}
+    </if>
+    GROUP BY cb.product_id, p.name
+    ORDER BY sales DESC
+    <if test="limit != null">
+      LIMIT #{limit}
+    </if>
+  </select>
+
+  <select id="selectMemberConsumption" resultType="java.util.Map">
+    SELECT 
+      ROW_NUMBER() OVER (ORDER BY SUM(cb.order_amount) DESC) as `rank`,
+      cb.member_id as memberId,
+      m.name as memberName,
+      COALESCE(SUM(cb.order_amount), 0) as consumption,
+      COUNT(*) as orderCount
+    FROM customer_behavior cb
+    LEFT JOIN member m ON cb.member_id = m.memberid
+    WHERE cb.behavior_type = 3
+    <if test="startDate != null and startDate != ''">
+      AND cb.behavior_time &gt;= #{startDate}
+    </if>
+    <if test="endDate != null and endDate != ''">
+      AND cb.behavior_time &lt;= #{endDate}
+    </if>
+    GROUP BY cb.member_id, m.name
+    ORDER BY consumption DESC
+    <if test="limit != null">
+      LIMIT #{limit}
+    </if>
+  </select>
+
+  <insert id="insertCustomerBehavior" parameterType="org.cityu.supermarket.entity.CustomerBehavior">
+    INSERT INTO customer_behavior (member_id, behavior_type, product_id, order_amount, session_id, behavior_time, create_time)
+    VALUES (#{memberId}, #{behaviorType}, #{productId}, #{orderAmount}, #{sessionId}, #{behaviorTime}, NOW())
+  </insert>
+
+</mapper>
