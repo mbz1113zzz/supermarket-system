@@ -60,6 +60,8 @@ Or run step by step:
 ```bash
 mysql -u root -p supermarket < db/core/schema.sql
 mysql -u root -p supermarket < db/core/data.sql
+mysql -u root -p supermarket < db/extension/schema.sql
+mysql -u root -p supermarket < db/extension/data.sql
 ```
 
 ### 3. Start Backend
@@ -119,6 +121,6 @@ Test profile config: `src/test/resources/application-test.properties` (points to
 - Order management — creation, details, balance/points payment
 - Transaction records — recharge & consumption logs
 - Procurement — suppliers, purchase orders, inbound tracking
-- Marketing — promotions, coupons, customer behavior analysis
-- Dashboard — statistics overview, analytics widgets & KPIs
+- Marketing — promotions, coupons, customer behavior
+- Dashboard — analytics widgets & KPIs
 
